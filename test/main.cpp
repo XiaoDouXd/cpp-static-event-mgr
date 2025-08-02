@@ -29,8 +29,9 @@ int main() {
 
   // register event
   const auto uuid = XD::Event::UUID::gen();
+  const auto uuid2 = XD::Event::UUID::gen();
   const auto handlerA1 = mgr.registerEvent<Event_IntAndDouble>(uuid, FuncA1);
-  const auto handlerA2 = mgr.registerEvent<Event_IntAndDouble>(uuid, FuncA2);
+  const auto handlerA2 = mgr.registerEvent<Event_IntAndDouble>(uuid2, FuncA2);
   const auto handlerB = mgr.registerEvent<Event_Str>(uuid, FuncB);
   const auto handlerC = mgr.registerEvent<Event_Void>(uuid, FuncC);
   const auto handlerD = mgr.registerEvent<Event_PointerA>(uuid, FuncD);
@@ -39,7 +40,7 @@ int main() {
   mgr.broadcast<Event_IntAndDouble>(1, 2.2);
 
   // unregister event
-  mgr.unregisterEvent(handlerA2, uuid);
+  mgr.unregisterEvent<Event_IntAndDouble>(uuid);
   mgr.broadcast<Event_IntAndDouble>(2, 4.4);
 
   // dispatch async event
