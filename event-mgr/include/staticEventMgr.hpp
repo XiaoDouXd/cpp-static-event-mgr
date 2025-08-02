@@ -261,7 +261,7 @@ namespace XD::Event
     /// @brief 刷新帧
     void update();
 
-    /// @brief 销毁
-    void destroy();
+    /// @brief 重置所有
+    void reset();
   };
 } // namespace XD::Event

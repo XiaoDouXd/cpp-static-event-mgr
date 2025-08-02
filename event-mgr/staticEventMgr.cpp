@@ -68,8 +68,9 @@ namespace XD::Event
     lDic.erase(eH);
   }
 
-  void StaticEventMgr::destroy()
+  void StaticEventMgr::reset()
   {
     _inst.reset();
+    _inst = std::unique_ptr<StaticEventMgr::EventMgrData>();
   }
 } // namespace XD::App

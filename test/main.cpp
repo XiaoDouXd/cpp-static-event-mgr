@@ -61,8 +61,8 @@ int main() {
   // update mgr (for async broadcast)
   mgr.update();
 
-  // destroy event manager
-  mgr.destroy();
+  // reset event manager
+  mgr.reset();
 
   return 0;
 }
