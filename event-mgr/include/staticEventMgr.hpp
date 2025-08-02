@@ -75,11 +75,11 @@ namespace XD::Event
     {
     public:
       /// @brief mutex
-      std::recursive_mutex                               mtx;
+      std::recursive_mutex mtx;
       /// @brief 静态事件 <事件id, <事件监听成员, EventHandler>>
       std::unordered_map<std::size_t, std::map<uuids::uuid, EventHandler>> staticEvents;
       /// @brief 异步事件的等待队列
-      std::list<EventAsyncHandler>                     waitingQueue;
+      std::list<EventAsyncHandler> waitingQueue;
     };
     std::unique_ptr<EventMgrData> _inst = std::unique_ptr<EventMgrData>();
 
