@@ -9,7 +9,7 @@ void FuncA2(int a, double b) {
   std::cout << "call FuncA2 with param: a = " << a << ", b = " << b << std::endl;
 }
 
-void FuncB(const std::string& s) {
+void FuncB(const std::string &s) {
   std::cout << "call FuncB with param: s = `" << s << "`" << std::endl;
 }
 
@@ -17,15 +17,12 @@ void FuncC() {
   std::cout << "call FuncC" << std::endl;
 }
 
-void FuncD(A* a) {
+void FuncD(A *a) {
   std::cout << "call FuncD with param: a = " << (ptrdiff_t)a << ", a->Func() = `" << a->Func() << "`" << std::endl;
 }
 
 int main() {
   auto mgr = XD::Event::StaticEventMgr();
-
-  // init event manager
-  mgr.init();
 
   // register event
   const auto uuid = XD::Event::UUID::gen();
@@ -50,7 +47,7 @@ int main() {
 
   // dispatch async with callback
   auto a = new A();
-  mgr.broadcastAsyncWithCallback<Event_PointerA>(std::function([](A* v) {
+  mgr.broadcastAsyncWithCallback<Event_PointerA>(std::function([](A *v) {
     delete v;
   }), a);
 

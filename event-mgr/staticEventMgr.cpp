@@ -2,11 +2,6 @@
 
 namespace XD::Event
 {
-  void StaticEventMgr::init()
-  {
-    _inst = std::make_unique<StaticEventMgr::EventMgrData>();
-  }
-
   void StaticEventMgr::update()
   {
     const auto startTime = clock();
@@ -25,13 +20,13 @@ namespace XD::Event
     }
   }
 
-  [[maybe_unused]] void StaticEventMgr::unregisterEvent(const std::size_t& hashCode, const uuids::uuid& obj)
+  [[maybe_unused]] void StaticEventMgr::unregisterEvent(const std::size_t &hashCode, const uuids::uuid &obj)
   {
     std::lock_guard<std::recursive_mutex> lock(_inst->mtx);
 
-    auto& eDic = _inst->staticEvents;
+    auto &eDic = _inst->staticEvents;
     if (eDic.find(hashCode) == eDic.end()) return;
-    auto& lDic = eDic[hashCode];
+    auto &lDic = eDic[hashCode];
     if (lDic.find(obj) == lDic.end()) return;
     auto eH = lDic.find(obj);
 
@@ -44,15 +39,15 @@ namespace XD::Event
     lDic.erase(eH);
   }
 
-  [[maybe_unused]] void StaticEventMgr::unregisterEvent(const std::optional<std::size_t>& hashCodeOpt, const uuids::uuid& obj)
+  [[maybe_unused]] void StaticEventMgr::unregisterEvent(const std::optional<std::size_t> &hashCodeOpt, const uuids::uuid &obj)
   {
     std::lock_guard<std::recursive_mutex> lock(_inst->mtx);
 
     if (!hashCodeOpt) return;
-    const auto& hashCode = hashCodeOpt.value();
-    auto& eDic = _inst->staticEvents;
+    const auto &hashCode = hashCodeOpt.value();
+    auto &eDic = _inst->staticEvents;
     if (eDic.find(hashCode) == eDic.end()) return;
-    auto& lDic = eDic[hashCode];
+    auto &lDic = eDic[hashCode];
     if (lDic.find(obj) == lDic.end()) return;
     auto eH = lDic.find(obj);
 
@@ -68,6 +63,6 @@ namespace XD::Event
   void StaticEventMgr::reset()
   {
     _inst.reset();
-    _inst = std::unique_ptr<StaticEventMgr::EventMgrData>();
+    _inst = std::make_unique<StaticEventMgr::EventMgrData>();
   }
-} // namespace XD::App
+} // namespace XD::Event

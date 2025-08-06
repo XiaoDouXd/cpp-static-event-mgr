@@ -54,7 +54,7 @@ namespace XD::Event
     struct EventHandler
     {
     public:
-      EventHandler(const uuids::uuid& objId, std::unique_ptr<_xd_staticEvent_BaseFunc>&& cb)
+      EventHandler(const uuids::uuid &objId, std::unique_ptr<_xd_staticEvent_BaseFunc> &&cb)
         :objId(objId), cb(std::move(cb)), waiting(std::queue<std::list<EventAsyncHandler>::const_iterator>()) {}
       uuids::uuid objId = uuids::uuid();
       std::unique_ptr<_xd_staticEvent_BaseFunc> cb = nullptr;
@@ -64,9 +64,9 @@ namespace XD::Event
     struct EventAsyncHandler
     {
     public:
-      EventAsyncHandler(EventHandler* event, std::function<void()> invoke)
+      EventAsyncHandler(EventHandler *event, std::function<void()> invoke)
         :event(event), invoke(std::move(invoke)) {}
-      EventHandler* event = nullptr;
+      EventHandler *event = nullptr;
       std::function<void()> invoke;
     };
 
@@ -81,7 +81,7 @@ namespace XD::Event
       /// @brief 异步事件的等待队列
       std::list<EventAsyncHandler> waitingQueue;
     };
-    std::unique_ptr<EventMgrData> _inst = std::unique_ptr<EventMgrData>();
+    std::unique_ptr<EventMgrData> _inst = std::make_unique<EventMgrData>();
 
   public:
     /// @brief 注册事件 每个 obj 只能注册一次相同事件 多余的注册会被略过
@@ -90,14 +90,14 @@ namespace XD::Event
     /// @param cb 事件的回调
     /// @return 注册到事件的哈希值包 (可以使用这个哈希值注销事件)
     template<class EType>
-      requires EType::_xd_isEventType::value&& std::is_base_of<typename EType::_xd_eType, EType>::value
-    std::optional<std::size_t> registerEvent(const uuids::uuid& obj, typename EType::_xd_fType cb)
+      requires EType::_xd_isEventType::value && std::is_base_of<typename EType::_xd_eType, EType>::value
+    std::optional<std::size_t> registerEvent(const uuids::uuid &obj, typename EType::_xd_fType cb)
     {
       std::size_t hashCode = typeid(EType).hash_code();
-      auto& eDic = _inst->staticEvents;
+      auto &eDic = _inst->staticEvents;
       if (eDic.find(hashCode) == eDic.end())
         eDic.insert({ hashCode, std::map<uuids::uuid, EventHandler>() });
-      auto& lDic = eDic[hashCode];
+      auto &lDic = eDic[hashCode];
       if (lDic.find(obj) != lDic.end()) return std::nullopt;
       lDic.insert(std::pair(obj, EventHandler(
         obj,
@@ -111,13 +111,13 @@ namespace XD::Event
     /// @tparam EType 注销的事件类型
     /// @param obj 监听器的 id (一般用对象内存地址描述)
     template<class EType>
-      requires EType::_xd_isEventType::value&& std::is_base_of<typename EType::_xd_eType, EType>::value
-    std::optional<std::size_t> unregisterEvent(const uuids::uuid& obj)
+      requires EType::_xd_isEventType::value && std::is_base_of<typename EType::_xd_eType, EType>::value
+    std::optional<std::size_t> unregisterEvent(const uuids::uuid &obj)
     {
       std::size_t hashCode = typeid(EType).hash_code();
-      auto& eDic = _inst->staticEvents;
+      auto &eDic = _inst->staticEvents;
       if (eDic.find(hashCode) == eDic.end()) return std::nullopt;
-      auto& lDic = eDic[hashCode];
+      auto &lDic = eDic[hashCode];
       if (lDic.find(obj) == lDic.end()) return std::nullopt;
       auto eH = lDic.find(obj);
 
@@ -134,26 +134,26 @@ namespace XD::Event
     /// @brief 注销事件
     /// @param hashCode 事件的哈希值
     /// @param obj 监听器的 id (一般用对象内存地址描述)
-    void unregisterEvent(const std::size_t& hashCode, const uuids::uuid& obj);
+    void unregisterEvent(const std::size_t &hashCode, const uuids::uuid &obj);
 
     /// @brief 注销事件
     /// @param hashCodeOpt 事件的哈希值包
     /// @param obj 监听器的 id (一般用对象内存地址描述)
-    void unregisterEvent(const std::optional<std::size_t>& hashCodeOpt, const uuids::uuid& obj);
+    void unregisterEvent(const std::optional<std::size_t> &hashCodeOpt, const uuids::uuid &obj);
 
     /// @brief 某事件的所有监听
     /// @tparam EType 事件类型
     template<class EType>
-      requires EType::_xd_isEventType::value&& std::is_base_of<typename EType::_xd_eType, EType>::value
+      requires EType::_xd_isEventType::value && std::is_base_of<typename EType::_xd_eType, EType>::value
     void clearEvent()
     {
       std::lock_guard<std::recursive_mutex> lock(_inst->mtx);
 
       // 清空所有事件
       std::size_t hashCode = typeid(EType).hash_code();
-      auto& eDic = _inst->staticEvents;
+      auto &eDic = _inst->staticEvents;
       if (eDic.find(hashCode) == eDic.end()) return;
-      for (auto& lDic : eDic[hashCode])
+      for (auto &lDic : eDic[hashCode])
       {
         while (!lDic.second.waiting.empty())
         {
@@ -168,18 +168,18 @@ namespace XD::Event
     /// @tparam EType 事件类型
     /// @tparam ...ArgTypes 参数包 (定义事件类型时所指定的参数)
     /// @param ...args 要传递参数
-    template<class EType, typename... ArgTypes>
-      requires EType::_xd_isEventType::value&& std::is_base_of<typename EType::_xd_eType, EType>::value
+    template<class EType, typename ...ArgTypes>
+      requires EType::_xd_isEventType::value && std::is_base_of<typename EType::_xd_eType, EType>::value
     && std::is_same<typename EType::_xd_fType, std::function<void(ArgTypes...)>>::value
-      void broadcast(ArgTypes... args)
+      void broadcast(ArgTypes ...args)
     {
       std::lock_guard<std::recursive_mutex> lock(_inst->mtx);
 
       // 同步广播直接调用, 不创建任何闭包
       std::size_t hashCode = typeid(EType).hash_code();
-      auto& eDic = _inst->staticEvents;
+      auto &eDic = _inst->staticEvents;
       if (eDic.find(hashCode) == eDic.end()) return;
-      for (auto& lDic : eDic[hashCode])
+      for (auto &lDic : eDic[hashCode])
       {
         reinterpret_cast<_xd_staticEvent_Func<EType>*>(lDic.second.cb.get())->
           func(std::forward<ArgTypes>(args)...);
@@ -190,18 +190,18 @@ namespace XD::Event
     /// @tparam EType 事件类型
     /// @tparam ...ArgTypes 参数包 (定义事件类型时所指定的参数)
     /// @param ...args 要传递的参数
-    template<class EType, typename... ArgTypes>
-      requires EType::_xd_isEventType::value&& std::is_base_of<typename EType::_xd_eType, EType>::value
+    template<class EType, typename ...ArgTypes>
+      requires EType::_xd_isEventType::value && std::is_base_of<typename EType::_xd_eType, EType>::value
     && std::is_same<typename EType::_xd_fType, std::function<void(ArgTypes...)>>::value
-      void broadcastAsync(ArgTypes... args)
+      void broadcastAsync(ArgTypes ...args)
     {
       std::lock_guard<std::recursive_mutex> lock(_inst->mtx);
 
       // 异步广播需要构造闭包
       std::size_t hashCode = typeid(EType).hash_code();
-      auto& eDic = _inst->staticEvents;
+      auto &eDic = _inst->staticEvents;
       if (eDic.find(hashCode) == eDic.end()) return;
-      for (auto& lDic : eDic[hashCode])
+      for (auto &lDic : eDic[hashCode])
       {
         // 回调指针
         auto cbPtr = reinterpret_cast<_xd_staticEvent_Func<EType>*>(lDic.second.cb.get());
@@ -221,7 +221,7 @@ namespace XD::Event
     /// @tparam ...ArgTypes 参数包 (定义事件类型时所指定的参数)
     /// @param ...args 要传递的参数
     template<class EType, typename... ArgTypes>
-    requires EType::_xd_isEventType::value&& std::is_base_of<typename EType::_xd_eType, EType>::value
+    requires EType::_xd_isEventType::value && std::is_base_of<typename EType::_xd_eType, EType>::value
       && std::is_same<typename EType::_xd_fType, std::function<void(ArgTypes...)>>::value
       void broadcastAsyncWithCallback(std::function<void(ArgTypes...)> finishCallback, ArgTypes... args)
     {
@@ -229,14 +229,14 @@ namespace XD::Event
 
       // 异步广播需要构造闭包
       std::size_t hashCode = typeid(EType).hash_code();
-      auto& eDic = _inst->staticEvents;
+      auto &eDic = _inst->staticEvents;
       if (eDic.find(hashCode) == eDic.end()) return;
-      for (auto& lDic : eDic[hashCode])
+      for (auto &lDic : eDic[hashCode])
       {
         // 回调指针
         auto cbPtr = reinterpret_cast<_xd_staticEvent_Func<EType>*>(lDic.second.cb.get());
 
-        // 使用 lambda 构造闭包
+        // 使用 bind 构造闭包
         _inst->waitingQueue.emplace_back(
           EventAsyncHandler(
             &lDic.second,
@@ -256,9 +256,6 @@ namespace XD::Event
   public:
     /// @brief 异步事件最大片段时间
     clock_t MAX_WAIT_TIME = 1000;
-
-    /// @brief 初始化
-    void init();
 
     /// @brief 刷新帧
     void update();
