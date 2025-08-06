@@ -14,14 +14,13 @@ set(ALL_SRC
 
   # uuid (方便代码提示)
   ./3rd/uuid.h
-  ./util/uuidGen.h
 
   # obj
-  ./util/uuidGen.cpp
+  uuidGen.cpp
   staticEventMgr.cpp
 )
 
 # 包含目录
-include_directories(./include)
+include_directories(./ ./include)
 add_library(xd-event-mgr STATIC ${ALL_SRC})
 target_include_directories(xd-event-mgr INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/include)

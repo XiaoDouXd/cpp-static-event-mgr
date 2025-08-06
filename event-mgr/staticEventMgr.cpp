@@ -2,9 +2,6 @@
 
 namespace XD::Event
 {
-  static clock_t startTime;
-  static const clock_t maxWaitTime = 160;
-
   void StaticEventMgr::init()
   {
     _inst = std::make_unique<StaticEventMgr::EventMgrData>();
@@ -12,10 +9,10 @@ namespace XD::Event
 
   void StaticEventMgr::update()
   {
-    startTime = clock();
+    const auto startTime = clock();
 
     auto isEmpty = false;
-    while (!isEmpty && clock() - startTime <= maxWaitTime)
+    while (!isEmpty && clock() - startTime <= MAX_WAIT_TIME)
     {
       std::lock_guard<std::recursive_mutex> lock(_inst->mtx);
       isEmpty = _inst->waitingQueue.empty();

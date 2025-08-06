@@ -2,7 +2,7 @@
 #ifdef _WIN32
 #include "windows.h"
 #endif
-#include "uuidGen.h"
+#include "3rd/uuid.h"
 #undef UUID_TIME_GENERATOR
 
 namespace XD::Event::UUID

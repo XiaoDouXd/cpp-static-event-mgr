@@ -197,7 +197,7 @@ namespace XD::Event
     {
       std::lock_guard<std::recursive_mutex> lock(_inst->mtx);
 
-      // 异步广播需要构造闭包, 这里直接用 lambda 偷个懒
+      // 异步广播需要构造闭包
       std::size_t hashCode = typeid(EType).hash_code();
       auto& eDic = _inst->staticEvents;
       if (eDic.find(hashCode) == eDic.end()) return;
@@ -206,11 +206,11 @@ namespace XD::Event
         // 回调指针
         auto cbPtr = reinterpret_cast<_xd_staticEvent_Func<EType>*>(lDic.second.cb.get());
 
-        // 使用 lambda 构造闭包
+        // 使用 bind 构造闭包
         _inst->waitingQueue.emplace_back(
           EventAsyncHandler(
             &lDic.second,
-            [cbPtr, args...]() {cbPtr->func(args...); }
+            std::bind(cbPtr->func, args...)
           ));
         lDic.second.waiting.emplace(--(_inst->waitingQueue.end()));
       }
@@ -227,7 +227,7 @@ namespace XD::Event
     {
       std::lock_guard<std::recursive_mutex> lock(_inst->mtx);
 
-      // 异步广播需要构造闭包, 这里直接用 lambda 偷个懒
+      // 异步广播需要构造闭包
       std::size_t hashCode = typeid(EType).hash_code();
       auto& eDic = _inst->staticEvents;
       if (eDic.find(hashCode) == eDic.end()) return;
@@ -240,7 +240,7 @@ namespace XD::Event
         _inst->waitingQueue.emplace_back(
           EventAsyncHandler(
             &lDic.second,
-            [cbPtr, args...]() {cbPtr->func(args...); }
+            std::bind(cbPtr->func, args...)
         ));
         lDic.second.waiting.emplace(--(_inst->waitingQueue.end()));
       }
@@ -249,11 +249,13 @@ namespace XD::Event
       _inst->waitingQueue.emplace_back(
         EventAsyncHandler(
           nullptr,
-          [finishCallback, args...]() {finishCallback(args...); }
+          std::bind(finishCallback, args...)
       ));
     }
 
   public:
+    /// @brief 异步事件最大片段时间
+    clock_t MAX_WAIT_TIME = 1000;
 
     /// @brief 初始化
     void init();
